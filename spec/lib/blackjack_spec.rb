@@ -136,8 +136,7 @@ describe Hand do
       end
 
       it 'should deal another card if the player hits' do
-        game.deal(game.player_hand, "Player")
-        game.deal(game.player_hand, "Player")
+        game.initial_deal(game.player_hand, "Player")
         player_choice = "h"
         game.prompt_player(player_choice)
         expect(game.player_hand.cards.size).to eq(3)
