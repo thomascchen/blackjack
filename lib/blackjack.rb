@@ -19,14 +19,11 @@ class Card
       return 'numeric'
     end
   end
-
 end
 
-SUITS = ['♦', '♠', '♥', '♣']
-VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
-
 class Deck
-  attr_accessor :collection
+  SUITS = ['♦', '♠', '♥', '♣']
+  VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 
   def initialize
     @collection = []
@@ -46,6 +43,9 @@ class Deck
     @collection.pop
   end
 
+  private
+
+  attr_accessor :collection
 end
 
 class Hand
@@ -88,12 +88,7 @@ class Hand
       return ace_array.size
     end
   end
-
 end
-
-# deck = Deck.new
-# hand = Hand.new
-# hand.add_card(deck.draw!)
 
 class Game
   attr_accessor :deck, :player_hand, :dealer_hand, :user_input
@@ -105,7 +100,7 @@ class Game
   end
 
   def welcome
-    "Welcome to Blackjack!"
+    "Welcome to Blackjack!\n\n"
   end
 
   def initial_deal(whose_hand, their_name)
@@ -114,7 +109,7 @@ class Game
     summary = "#{their_name} was dealt #{whose_hand.cards[0].value}#{whose_hand.cards[0].suit}\n"
     summary += "#{their_name} was dealt #{whose_hand.cards[1].value}#{whose_hand.cards[1].suit}\n"
     summary += "#{their_name} Score: #{whose_hand.best_score}\n"
-    puts summary
+    summary
   end
 
   def deal(whose_hand, their_name)
@@ -125,47 +120,47 @@ class Game
 
   def hit(whose_hand, their_name)
     summary = "#{deal(whose_hand, their_name)}"
-    summary += "#{their_name} Score: #{whose_hand.best_score}\n"
-    puts summary
-  end
-
-  def stand
-    puts "You stood\n\n"
+    summary += "#{their_name} Score: #{whose_hand.best_score}"
+    summary
   end
 
   def hit_or_stand
-    print "Hit or stand (H/S):"
+    print "\nHit or stand (H/S): "
   end
 
-  def dealer_turns
-    initial_deal(dealer_hand, "Dealer")
-    if dealer_hand.best_score < 17
-      hit(dealer_hand, "Dealer")
-    elsif dealer_hand.best_score == 21
-      puts "Dealer stands"
-    elsif dealer_hand.best_score > 21
-      puts "Dealer busts"
+  def dealer_turn
+    print "\n" + initial_deal(dealer_hand, "Dealer")
+
+    until dealer_hand.best_score >= 17
+      puts hit(dealer_hand, "Dealer")
+    end
+
+    if dealer_hand.best_score >= 17 && dealer_hand.best_score <= 21
+      print "\nDealer stands"
     end
   end
 
   def continue_turn
     if player_hand.best_score == 21
       puts "\nPlayer Score is 21! End turn!\n"
-      dealer_turns
+      puts dealer_turn
     elsif player_hand.best_score > 21
-      "\nPlayer has busted. :( You lost!"
+      "\nBust! You lose..."
     elsif player_hand.best_score < 21
-      hit_or_stand
       prompt_player
     end
   end
 
+  def user_input
+    gets.chomp.downcase
+  end
+
   def prompt_player
-    player_choice = gets.chomp.downcase
-    if player_choice == "s"
-      stand
-      dealer_turns
-    elsif player_choice == "h"
+    hit_or_stand
+    @player_choice = user_input
+    if @player_choice == "s"
+      puts dealer_turn
+    elsif @player_choice == "h"
       hit(player_hand, "Player")
       continue_turn
     else
@@ -176,11 +171,17 @@ class Game
 
   def winner
     if dealer_hand.best_score > 21
-      "You win!"
-    elsif dealer_hand.best_score > player_hand.best_score
+      "Bust! You win!"
+    elsif dealer_hand.best_score > player_hand.best_score &&
+       player_hand.best_score <= 21 &&
+       dealer_hand.best_score <= 21
       "Dealer wins!"
-    elsif player_hand.best_score > dealer_hand.best_score
+    elsif player_hand.best_score > dealer_hand.best_score &&
+      player_hand.best_score <= 21 &&
+      dealer_hand.best_score <= 21
       "You win!"
+    elsif player_hand.best_score == dealer_hand.best_score
+      "Tie! No one wins."
     end
   end
 
@@ -188,7 +189,7 @@ end
 
 def new_game
   game = Game.new(Deck.new, Hand.new, Hand.new)
-  game.welcome
+  puts game.welcome
   puts game.initial_deal(game.player_hand, "Player")
   puts game.continue_turn
   puts game.winner
